@@ -43,7 +43,7 @@ func main() {
 }
 func rd(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.RawQuery
-	fmt.Println("r ", q)
+	fmt.Println("r", q)
 	f, e := os.Open(q)
 	if e != nil {
 		fmt.Fprintf(w, "%s\n", e)
@@ -54,9 +54,9 @@ func rd(w http.ResponseWriter, r *http.Request) {
 func wr(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.RawQuery
 	if b, err := ioutil.ReadAll(r.Body); err != nil {
-		fmt.Fprintf("%s\n", err)
+		fmt.Fprintf(w, "%s\n", err)
 	} else {
-		fmt.Printf("w %s (%d)", q, len(b))
+		fmt.Printf("w %s (%d)\n", q, len(b))
 		// TODO: write r.Body to q
 	}
 }
