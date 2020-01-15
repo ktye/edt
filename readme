@@ -1,1 +1,9 @@
-edt
+# edt
+# simple editor based on codemirror(https://codemirror.net)
+#
+go run gen.go > main.go
+go build -o edt.exe main.go
+
+# ./edt.exe [file]
+# browse to http://localhost:2020/c:/path/to/file
+# search: select then button-3
