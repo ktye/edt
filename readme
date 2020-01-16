@@ -1,9 +1,16 @@
-# edt
-# simple editor based on codemirror(https://codemirror.net)
+# basic editor based on codemirror(https://codemirror.net MIT license: https://codemirror.net/LICENSE)
 #
 go run gen.go > main.go
 go build -o edt.exe main.go
 
 # ./edt.exe [file]
 # browse to http://localhost:2020/c:/path/to/file
-# search: select then button-3
+
+# search
+# select text
+#  middle button(search all)
+#  right  button(search next)
+
+# tag bar
+#  re→replace<ENTER> replaces re in selected regions
+#  text<ENTER>       search next
