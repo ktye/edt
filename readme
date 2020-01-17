@@ -12,5 +12,6 @@ go build -o edt.exe main.go
 #  right  button(search next)
 
 # tag bar
+#  123<ENTER>        goto line
+#  text<ENTER>       search next "text"
 #  re→replace<ENTER> replaces re in selected regions
-#  text<ENTER>       search next
