@@ -57,8 +57,11 @@ func wr(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%s\n", err)
 	} else {
 		fmt.Printf("w %s (%d)\n", q, len(b))
-		// TODO: write r.Body to q
 	}
+	if _, e := ioutil.ReadFile(q); e != nil {
+		fmt.Fprintf(w, "w %s: %s", q, e) // only write over existing files
+	}
+	fmt.Fprintf(w, "w %s: nyi", q) // TODO
 }
 func fav(w http.ResponseWriter, r *http.Request) {
 	m := image.NewRGBA(image.Rectangle{Max: image.Point{48, 48}})
@@ -100,14 +103,12 @@ var edt = document.getElementById("edt")
 var ed = CodeMirror.fromTextArea(edt, {"lineNumbers":true})
 
 function get(p, f) {
- console.log("get", p)
  var r = new XMLHttpRequest()
  r.onreadystatechange = function() { if (this.readyState == 4 && this.status == 200) { if (f) f(this.response, this); } }
  r.open("GET", p)
  r.send()
 }
 function post(p, f, b) {
- console.log("post", p)
  var r = new XMLHttpRequest()
  r.onreadystatechange = function() { if (this.readyState == 4 && this.status == 200) { if (f) f(this.response, this); } }
  r.open("POST", p)
@@ -115,16 +116,15 @@ function post(p, f, b) {
 }
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 function rd(file) { 
- get('/r?'+file, function(s){console.log("content", s); ed.setValue(s); document.title=file})
+ get('/r?'+file, function(s){ed.setValue(s); document.title=file})
 }
 function wr() {
  var file = window.location.pathname.substr(1)
- console.log("write!", file)
- post('/w?'+file, function(s){ console.log("post returns", s) }, ed.getValue())
+ post('/w?'+file, function(s){ if(s.length>0){tag.value=s} }, ed.getValue())
 }
 rd(window.location.pathname.substr(1))
 
-// search selected: middle-button(all), right(next)
+// search selected: middle-button(all), right(next) (bug: mouseup(chrome), ff ok)
 function pd(e){e.preventDefault();e.stopPropagation()}
 document.addEventListener('contextmenu',function(e){e.preventDefault()})
 ed.on('mousedown', function(cm, e) {
@@ -147,22 +147,21 @@ function search(t, all){
  }
 }
 
-// tag-bar: return(search), mark+button-click: middle(search all), right(search next)
+// tag-bar: return(search/goto line/re→replace), mark+button-click: middle(search all), right(search next)
+function goto(line){ ed.setSelection({"line":line,"ch":0},{"line":line}) }
 function tagKey(e){
  if(e.keyCode!=13) return
  var v = tag.value
  if(v.length==0) return
+ var line = Number(v)
+ if(isNaN(line)==false&&line>=0&&Math.floor(line)==line){goto(line+1);return}
  var i = v.indexOf("→")
- if(i==-1){search(v,false); return}
+ if(i==-1){search(v,false);return}
  var a = v.slice(0,i)
  var b = v.slice(i+1)
  var s = ed.getSelections()
- console.log("a",a,"b",b)
- console.log("selections", s)
  var re = RegExp(a, "gm")
- for(var i=0; i<s.length; i++){
-  s[i]=s[i].replace(re,b)
- }
+ for(var i=0; i<s.length; i++) { s[i]=s[i].replace(re,b) }
  ed.replaceSelections(s)
 }
 function tagSelection(){ return tag.value.slice(tag.selectionStart,tag.selectionEnd) }
