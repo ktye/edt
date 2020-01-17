@@ -121,7 +121,7 @@ var mainpage = `<!DOCTYPE html>
 <script>
 var tag = document.getElementById("tag")
 var edt = document.getElementById("edt")
-var ed = CodeMirror.fromTextArea(edt, {"lineNumbers":true})
+var ed = CodeMirror.fromTextArea(edt, {"lineNumbers":true,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true})
 
 function get(p, f) {
  var r = new XMLHttpRequest()
