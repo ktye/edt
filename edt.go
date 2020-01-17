@@ -175,7 +175,7 @@ function tagKey(e){
  var v = tag.value
  if(v.length==0) return
  var line = Number(v)
- if(isNaN(line)==false&&line>=0&&Math.floor(line)==line){goto(line+1);return}
+ if(isNaN(line)==false&&line>=0&&Math.floor(line)==line){goto(line-1);return}
  var i = v.indexOf("→")
  if(i==-1){search(v,false);return}
  var a = v.slice(0,i)
