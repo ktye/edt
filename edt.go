@@ -46,22 +46,43 @@ func rd(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("r", q)
 	f, e := os.Open(q)
 	if e != nil {
-		fmt.Fprintf(w, "%s\n", e)
+		fmt.Fprintf(w, "%s", e)
+		return
 	}
 	defer f.Close()
-	io.Copy(w, f)
+	if fi, e := f.Stat(); e != nil {
+		fmt.Fprintf(w, "%s", e)
+	} else if fi.IsDir() == false {
+		io.Copy(w, f)
+	} else {
+		if names, e := f.Readdirnames(-1); e != nil {
+			fmt.Fprintf(w, "%s\n", e)
+		} else {
+			for _, s := range names {
+				fmt.Fprintf(w, "%s\n", s)
+			}
+		}
+	}
 }
 func wr(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.RawQuery
-	if b, err := ioutil.ReadAll(r.Body); err != nil {
-		fmt.Fprintf(w, "%s\n", err)
+	b, e := ioutil.ReadAll(r.Body)
+	if e != nil {
+		fmt.Fprintf(w, "%s", e)
 	} else {
 		fmt.Printf("w %s (%d)\n", q, len(b))
 	}
-	if _, e := ioutil.ReadFile(q); e != nil {
+	fi, e := os.Stat(q)
+	if e != nil {
 		fmt.Fprintf(w, "w %s: %s", q, e) // only write over existing files
+		return
+	} else if fi.IsDir() {
+		fmt.Fprintf(w, "w %s (is directory)", q)
+		return
 	}
-	fmt.Fprintf(w, "w %s: nyi", q) // TODO
+	if e := ioutil.WriteFile(q, b, fi.Mode()); e != nil {
+		fmt.Fprintf(w, "w %s: %s", q, e)
+	}
 }
 func fav(w http.ResponseWriter, r *http.Request) {
 	m := image.NewRGBA(image.Rectangle{Max: image.Point{48, 48}})
