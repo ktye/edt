@@ -107,6 +107,7 @@ var mainpage = `<!DOCTYPE html>
 <script type="application/javascript" src="/cm.js"></script>
 <style>
    *{ font-family:monospace; margin:0; padding:0; }
+#but{ color:grey; }
 #hdr{ position:fixed;display:flex;top:0;left:0;right:0; }
 #tag{ background:#FFFFEA; border:1px solid black;}
 #edt{height:auto;top:0;buttom:0;position:fixed;}
@@ -120,6 +121,7 @@ var mainpage = `<!DOCTYPE html>
 <textarea id="edt"></textarea>
 <script>
 var tag = document.getElementById("tag")
+var but = document.getElementById("but")
 var edt = document.getElementById("edt")
 var ed = CodeMirror.fromTextArea(edt, {"lineNumbers":true,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true})
 
@@ -136,12 +138,13 @@ function post(p, f, b) {
  r.send(b)
 }
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
+function clean(x){but.style.color=x?"grey":"black"}
 function rd(file) { 
- get('/r?'+file, function(s){ed.setValue(s); document.title=file})
+ get('/r?'+file, function(s){ed.setValue(s); document.title=file;clean(true)})
 }
 function wr() {
  var file = window.location.pathname.substr(1)
- post('/w?'+file, function(s){ if(s.length>0){tag.value=s} }, ed.getValue())
+ post('/w?'+file, function(s){ if(s.length>0){tag.value=s};clean(true); }, ed.getValue())
 }
 rd(window.location.pathname.substr(1))
 
@@ -152,6 +155,7 @@ ed.on('mousedown', function(cm, e) {
  if     (e.button==2 && (ed.getSelection().length>0)){search(ed.getSelection(),false);pd(e)}
  else if(e.button==1 && (ed.getSelection().length>0)){search(ed.getSelection(),true );pd(e)}
 })
+ed.on('change', function(cm, e){clean(false)})
 function indexAll(a, s) { var r = [], i = -1; while ((i = a.indexOf(s, i+1)) != -1){ r.push(i); }; return r; }
 function search(t, all){
  var v = ed.getValue()
