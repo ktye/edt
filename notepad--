@@ -75,6 +75,7 @@ void execute() {
 	}
 	free(buf);
 }
+HBRUSH bg;
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine, int nCmdShow) {
 	MSG msg;
 	WNDCLASS wc;
@@ -88,6 +89,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLin
 	ReleaseDC(NULL, hdc);
 	hf = CreateFont(lfHeight, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0, 0, 0, "Iosevka Term SS04");
 	
+	bg = CreateSolidBrush(RGB(255, 255, 234));
+	
 	ZeroMemory(&wc, sizeof wc);
 	wc.hInstance     = hInstance;
 	wc.lpszClassName = "e";
@@ -99,7 +102,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLin
 
 	if (FALSE == RegisterClass(&wc)) return 0;
 	hwnd = CreateWindow("e", "e", WS_OVERLAPPEDWINDOW|WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 600, 400, 0, 0, hInstance, 0);
-	hedt =            CreateWindow(TEXT("Edit"), "textarea", WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_MULTILINE | WS_VSCROLL, 0, 0, 600, 400, hwnd, NULL, NULL, NULL);
+	hedt = CreateWindow(TEXT("Edit"), "textarea", WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_MULTILINE | WS_VSCROLL, 0, 0, 600, 400, hwnd, NULL, NULL, NULL);
 	
   	ShowWindow(hwnd, nCmdShow);
   	UpdateWindow(hwnd);
@@ -111,8 +114,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLin
 			continue;
 		} else if (msg.message == WM_CHAR) {
 			if (msg.wParam == 13) {
-				execute();
-				continue;
+				//execute();
+				//continue;
 			}
 		}
 		TranslateMessage(&msg);
@@ -121,14 +124,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLin
 	return msg.wParam;
 }
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	HDC hdc;
 	switch (msg) {
+	case WM_CTLCOLOREDIT:
+		SetBkColor((HDC)wParam, RGB(255, 255, 234)); // SetTextColor((HDC)wParam, RGB(0, 255, 0));
+		return (LRESULT)bg;
+		break;
 	case WM_CREATE:
 		break;
 	case WM_SIZE:
 		MoveWindow(hedt, 0, 0, LOWORD(lParam), HIWORD(lParam), TRUE);
-		break;
-	case WM_SIZING:
-		SetWindowText(hedt,"sizing");
 		break;
 	case WM_DESTROY:
     		PostQuitMessage(WM_QUIT);
