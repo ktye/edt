@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
 
@@ -19,6 +20,11 @@ int find(char *buf, int total, int s, int sn, int start) {
 		}
 	}
 	return -1;
+}
+int count(char *s, int n, char x) {
+	int i, r = 0;
+	for (i=0; i<n; i++) if (s[i]==x) r++;
+	return r;
 }
 void search() {
 	int i, n, next;
@@ -44,6 +50,7 @@ void search() {
 		next = find(buf, total, x, n, 0);
 		SendMessage(hedt, EM_SETSEL, next, next+n);
 	}
+	SendMessage(hedt, EM_SCROLLCARET, 0, 0);
 	free(buf);
 }
 int linestart(char *buf, int x) {
@@ -75,6 +82,33 @@ void execute() {
 	}
 	free(buf);
 }
+char *todos(char *s, int n) {
+	int i, o = 0;
+	char *r = malloc(n+count(s, n, '\n'));
+	for (i=0; i<n; i++) {
+		if (s[i] != '\n') r[o++] = s[i];
+		else {
+			r[o++] = '\r';
+			r[o++] = '\n';
+		}
+	}
+	free(s);
+	return r;
+}
+char *loadfile(char *s) {
+	char *r;
+	int n;
+	FILE *f = fopen(s, "r");
+	if (!f) return NULL;
+	fseek(f, 0, SEEK_END);
+	n = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	r = malloc(n+1);
+	fread(r, 1, n, f);
+	fclose(f);
+	r[n] = 0;
+	return todos(r, n+1);
+}
 HBRUSH bg;
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine, int nCmdShow) {
 	MSG msg;
@@ -87,7 +121,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLin
 	hdc = GetDC(NULL);
 	lfHeight = -MulDiv(16, GetDeviceCaps(hdc, LOGPIXELSY), 72);
 	ReleaseDC(NULL, hdc);
-	hf = CreateFont(lfHeight, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0, 0, 0, "Iosevka Term SS04");
+	hf = CreateFont(lfHeight, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0, 0, 0, "Iosevka Term");
 	
 	bg = CreateSolidBrush(RGB(255, 255, 234));
 	
@@ -101,8 +135,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLin
 	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
 
 	if (FALSE == RegisterClass(&wc)) return 0;
-	hwnd = CreateWindow("e", "e", WS_OVERLAPPEDWINDOW|WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 600, 400, 0, 0, hInstance, 0);
-	hedt = CreateWindow(TEXT("Edit"), "textarea", WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_MULTILINE | WS_VSCROLL, 0, 0, 600, 400, hwnd, NULL, NULL, NULL);
+	hwnd = CreateWindow("e", nCmdLine, WS_OVERLAPPEDWINDOW|WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 600, 400, 0, 0, hInstance, 0);
+	hedt = CreateWindow(TEXT("Edit"), loadfile(nCmdLine), WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_MULTILINE | WS_VSCROLL, 0, 0, 600, 400, hwnd, NULL, NULL, NULL);
 	
   	ShowWindow(hwnd, nCmdShow);
   	UpdateWindow(hwnd);
@@ -112,11 +146,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLin
 		if (msg.message == WM_RBUTTONDOWN) {
 			search();
 			continue;
+		//} else if (msg.message == WM_KEYDOWN) {
+			//if ((msg.wParam == 0x53) && (GetKeyState(VK_CONTROL)!=0)) continue;
+
 		} else if (msg.message == WM_CHAR) {
-			if (msg.wParam == 13) {
-				//execute();
-				//continue;
-			}
+			//if ((msg.wParam == 's') && GetKeyState(VK_CONTROL)==0) {
+				//SendMessage(hedt, "WM_SETTEXT", "alpha", 0);
+				//SetWindowText(hedt, "alpha");
+			//}
+			// if (msg.wParam == 13) { //execute(); //continue; }
 		}
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
