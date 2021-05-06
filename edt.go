@@ -8,15 +8,15 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
 func main() {
-	file, args, port := "", os.Args, 2020
+	file, args := "", os.Args
 	if len(args) > 2 {
 		panic("args")
 	} else if len(args) == 2 {
@@ -24,7 +24,6 @@ func main() {
 		fatal(e)
 		file = filepath.Join(dir, args[1])
 	}
-	fmt.Printf("http://localhost:%d/%s\n", port, filepath.ToSlash(file))
 
 	http.HandleFunc("/cm.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/javascript")
@@ -38,9 +37,14 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(mainpage)) })
 	http.HandleFunc("/r", rd)
 	http.HandleFunc("/w", wr)
-	if err := http.ListenAndServe(":"+strconv.Itoa(port), nil); err != nil {
-		fmt.Println(err)
-	}
+
+	addr := "127.0.0.1:0"
+	srv := &http.Server{Addr: addr}
+	ln, e := net.Listen("tcp", addr)
+	fmt.Printf("http://%s/%s\n", ln.Addr(), filepath.ToSlash(file))
+	fatal(e)
+	e = srv.Serve(ln)
+	fatal(e)
 }
 func rd(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.RawQuery
